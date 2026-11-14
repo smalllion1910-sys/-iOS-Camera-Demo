@@ -1,37 +1,19 @@
-name: Build iOS Demo
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
+name: Build VCam
+on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: macos-15
-
+    runs-on: macos-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate project
-        run: xcodegen generate
-
-      - name: Build iOS app
-        run: |
-          xcodebuild \
-            -project CameraDemo.xcodeproj \
-            -scheme CameraDemo \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-
-      - name: Upload app
-        uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - run: xcodegen
+      - run: |
+          xcodebuild -project CameraDemo.xcodeproj -scheme VCam \
+            -sdk iphoneos -configuration Release \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO
+      - run: find build -name "*.dylib"
+      - uses: actions/upload-artifact@v4
         with:
-          name: CameraDemo-iOS
-          path: build/Build/Products/Debug-iphonesimulator/CameraDemo.app
+          name: VCam-dylib
+          path: build/**/VCam.dylib
