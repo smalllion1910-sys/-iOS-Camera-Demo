@@ -1,6 +1,6 @@
-#import <dlfcn.h>
 #import <AVFoundation/AVFoundation.h>
 #import <objc/runtime.h>
+#import <dlfcn.h>
 
 static AVAssetReader *reader;
 static AVAssetReaderTrackOutput *vout;
@@ -8,11 +8,16 @@ static NSMutableSet *hooked;
 static IMP origSet;
 
 static void resetReader(void) {
-  NSString *p = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/meme.mp4"];
+  Dl_info info;
+  dladdr((void *)resetReader, &info);
+  NSString *dir = [[NSString stringWithUTF8String:info.dli_fname] stringByDeletingLastPathComponent];
+  NSString *p = [dir stringByAppendingPathComponent:@"meme.mp4"];
+  NSLog(@"[VCam] looking for video at %@", p);
+
   AVAsset *a = [AVAsset assetWithURL:[NSURL fileURLWithPath:p]];
   AVAssetTrack *t = [a tracksWithMediaType:AVMediaTypeVideo].firstObject;
   reader = nil; vout = nil;
-  if (!t) return;
+  if (!t) { NSLog(@"[VCam] video NOT found or unreadable"); return; }
   reader = [AVAssetReader assetReaderWithAsset:a error:nil];
   vout = [AVAssetReaderTrackOutput assetReaderTrackOutputWithTrack:t
     outputSettings:@{(id)kCVPixelBufferPixelFormatTypeKey:@(kCVPixelFormatType_32BGRA)}];
@@ -23,8 +28,9 @@ static void resetReader(void) {
 static CMSampleBufferRef nextFrame(CMSampleBufferRef orig) {
   @synchronized (hooked) {
     if (!reader) resetReader();
+    if (!vout) return NULL;
     CMSampleBufferRef f = [vout copyNextSampleBuffer];
-    if (!f) { resetReader(); f = [vout copyNextSampleBuffer]; }
+    if (!f) { resetReader(); if (vout) f = [vout copyNextSampleBuffer]; }
     if (!f) return NULL;
     CMSampleTimingInfo ti;
     CMSampleBufferGetSampleTimingInfo(orig, 0, &ti);
@@ -37,9 +43,13 @@ static CMSampleBufferRef nextFrame(CMSampleBufferRef orig) {
 
 static void hookDelegate(Class c) {
   SEL s = @selector(captureOutput:didOutputSampleBuffer:fromConnection:);
-  @synchronized (hooked) { if ([hooked containsObject:c]) return; [hooked addObject:c]; }
+  @synchronized (hooked) {
+    if ([hooked containsObject:c]) return;
+    [hooked addObject:c];
+  }
   Method m = class_getInstanceMethod(c, s);
   if (!m) return;
+  NSLog(@"[VCam] hooked delegate class: %@", NSStringFromClass(c));
   IMP orig = method_getImplementation(m);
   method_setImplementation(m, imp_implementationWithBlock(
     ^(id me, AVCaptureOutput *o, CMSampleBufferRef sb, AVCaptureConnection *cn) {
@@ -54,7 +64,7 @@ static void newSet(id self, SEL _cmd, id delegate, dispatch_queue_t q) {
   ((void(*)(id,SEL,id,dispatch_queue_t))origSet)(self, _cmd, delegate, q);
 }
 
-__attribute__((constructor)) static void init(void) {
+__attribute__((constructor)) static void vcam_init(void) {
   hooked = [NSMutableSet set];
   NSLog(@"[VCam] loaded, home=%@", NSHomeDirectory());
   Method m = class_getInstanceMethod([AVCaptureVideoDataOutput class],
