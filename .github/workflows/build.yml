@@ -1,21 +1,29 @@
-name: iOS Demo Build
+name: Build iOS Demo
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build:
     runs-on: macos-15
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Check Xcode
-        run: xcodebuild -version
+      - name: Install XcodeGen
+        run: brew install xcodegen
 
-      - name: Check Swift
-        run: swift --version
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build app
+        run: |
+          xcodebuild \
+            -project CameraDemo.xcodeproj \
+            -scheme CameraDemo \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            build
