@@ -24,7 +24,7 @@ jobs:
             -miphoneos-version-min=17.0 \
             -fobjc-arc \
             -framework Foundation \
-            Tweak.xm \
+            -x objective-c Tweak.xm \
             -o output/CameraDemo.dylib
 
       - name: Upload dylib
