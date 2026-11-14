@@ -18,3 +18,15 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Select a video for the demo"
+
+  VCam:
+    type: library.dynamic
+    platform: iOS
+    sources:
+      - path: Tweak
+    dependencies:
+      - sdk: AVFoundation.framework
+      - sdk: CoreMedia.framework
+    settings:
+      base:
+        CODE_SIGNING_ALLOWED: NO
