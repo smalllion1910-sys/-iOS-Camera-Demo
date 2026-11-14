@@ -14,12 +14,11 @@ jobs:
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO
       - name: Sign dylib
         run: |
-          f=$(find build -name "*.dylib" | head -1)
-          echo "Signing $f"
+          f=build/Build/Products/Release-iphoneos/VCam.dylib
           codesign -f -s - "$f"
           codesign -dv "$f"
       - uses: actions/upload-artifact@v4
         with:
           name: VCam-dylib
-          path: build/**/*.dylib
+          path: build/Build/Products/Release-iphoneos/VCam.dylib
           if-no-files-found: error
