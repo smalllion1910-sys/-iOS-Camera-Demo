@@ -1,3 +1,4 @@
+#import <dlfcn.h>
 #import <AVFoundation/AVFoundation.h>
 #import <objc/runtime.h>
 
