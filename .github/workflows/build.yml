@@ -10,7 +10,8 @@ jobs:
     runs-on: macos-15
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -18,12 +19,19 @@ jobs:
       - name: Generate project
         run: xcodegen generate
 
-      - name: Build app
+      - name: Build iOS app
         run: |
           xcodebuild \
             -project CameraDemo.xcodeproj \
             -scheme CameraDemo \
             -sdk iphonesimulator \
             -configuration Debug \
+            -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: CameraDemo-iOS
+          path: build/Build/Products/Debug-iphonesimulator/CameraDemo.app
