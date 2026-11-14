@@ -8,15 +8,13 @@ targets:
   CameraDemo:
     type: application
     platform: iOS
-
     sources:
-      - CameraDemo.swift
-      - CameraDemoApp.swift
-
+      - path: CameraDemo.swift
+      - path: CameraDemoApp.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.smalllion.camerademo
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Select a video for the meme demo"
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Select a video for the demo"
