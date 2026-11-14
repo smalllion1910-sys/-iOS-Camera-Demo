@@ -12,7 +12,12 @@ jobs:
           xcodebuild -project CameraDemo.xcodeproj -scheme VCam \
             -sdk iphoneos -configuration Release \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO
-      - run: find build -name "*.dylib"
+      - name: Sign dylib
+        run: |
+          f=$(find build -name "*.dylib" | head -1)
+          echo "Signing $f"
+          codesign -f -s - "$f"
+          codesign -dv "$f"
       - uses: actions/upload-artifact@v4
         with:
           name: VCam-dylib
